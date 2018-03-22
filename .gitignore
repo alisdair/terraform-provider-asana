@@ -1,1 +1,6 @@
 terraform-provider-asana
+
+.terraform
+*.tf
+*.tfstate
+*.tfstate.backup
