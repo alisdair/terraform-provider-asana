@@ -98,7 +98,12 @@ func resourceProjectRead(d *schema.ResourceData, m interface{}) error {
 	}
 
 	project, err := client.FindProjectByID(d.Id())
-	if err != nil {
+
+	// If update returns a 404, the project has been deleted
+	if httpErr, ok := err.(*asana.HTTPError); ok && httpErr.Code() == 404 {
+		d.SetId("")
+		return nil
+	} else if err != nil {
 		return err
 	}
 
@@ -125,11 +130,14 @@ func resourceProjectUpdate(d *schema.ResourceData, m interface{}) error {
 		PublicToOrganization: d.Get("public").(bool),
 	}
 	_, err = client.UpdateProject(request)
-	if err != nil {
-		return err
+
+	// If update returns a 404, the project has been deleted
+	if httpErr, ok := err.(*asana.HTTPError); ok && httpErr.Code() == 404 {
+		d.SetId("")
+		return nil
 	}
 
-	return nil
+	return err
 }
 
 func resourceProjectDelete(d *schema.ResourceData, m interface{}) error {
@@ -139,17 +147,11 @@ func resourceProjectDelete(d *schema.ResourceData, m interface{}) error {
 	}
 
 	err = client.DeleteProjectByID(d.Id())
-	if err != nil {
-		switch err.(type) {
-		case *asana.HTTPError:
-			// Consider 404 a success
-			if err.(*asana.HTTPError).Code() == 404 {
-				return nil
-			}
-		default:
-			return err
-		}
+
+	// Consider 404 a success
+	if httpErr, ok := err.(*asana.HTTPError); ok && httpErr.Code() == 404 {
+		return nil
 	}
 
-	return nil
+	return err
 }
