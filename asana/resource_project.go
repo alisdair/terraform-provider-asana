@@ -1,9 +1,9 @@
 package asana
 
 import (
+	"github.com/alisdair/asana/v1"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/orijtech/asana/v1"
 	"strconv"
 )
 
